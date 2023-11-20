@@ -116,7 +116,7 @@ elif which_example == "darcy":
     training_samples = training_properties["training_samples"] = 256
     example = Darcy(model_architecture_, device, batch_size, training_samples)
 elif which_example == "ns":
-    training_samples = training_properties["training_samples"] = 768
+    training_samples = training_properties["training_samples"] = 4096
     example = StandardNavierStokes(model_architecture_, device, batch_size, training_samples, size = None)
 else:
     raise ValueError()

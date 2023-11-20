@@ -5,4 +5,4 @@ scheduler_gamma,0.98
 epochs,1000.0
 batch_size,16.0
 exp,1.0
-training_samples,768.0
+training_samples,4096.0
