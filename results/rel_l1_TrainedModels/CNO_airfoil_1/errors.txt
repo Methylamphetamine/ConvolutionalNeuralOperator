@@ -1,6 +1,6 @@
-Training Error: 0.006683277927259816
+Training Error: 0.006464326110212726
 Best Testing Error: 1.155242219567299
-Current Epoch: 282
+Current Epoch: 298
 Params: 2951249
 Loss : rel_l1
 Test : L_2

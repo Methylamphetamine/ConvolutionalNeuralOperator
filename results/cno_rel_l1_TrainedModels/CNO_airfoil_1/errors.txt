@@ -1,6 +1,6 @@
-Training Error: 0.00831453895513364
+Training Error: 0.009410180884631386
 Best Testing Error: 1.3915024548768997
-Current Epoch: 192
+Current Epoch: 206
 Params: 2951249
 Loss : cno_rel_l1
 Test : L_2
