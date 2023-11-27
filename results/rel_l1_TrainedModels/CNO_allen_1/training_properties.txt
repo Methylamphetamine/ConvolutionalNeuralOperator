@@ -1,0 +1,9 @@
+learning_rate,0.001
+weight_decay,1e-06
+scheduler_step,10
+scheduler_gamma,0.98
+epochs,1000
+batch_size,16
+loss_function,rel_l1
+test_rel_p,2
+training_samples,256

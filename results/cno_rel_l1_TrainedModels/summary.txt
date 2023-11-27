@@ -1,0 +1,7 @@
+shear_layer , in dist test rel. l2 error   3.92  %, out dist test rel. l2 error  16.23  %, original out dist test rel. l2 error 14.16%
+poisson     , in dist test rel. l2 error   1.52  %, out dist test rel. l2 error  675.56 %, original out dist test rel. l2 error 585.31%
+wave_0_5    , in dist test rel. l2 error   0.57  %, out dist test rel. l2 error   6.23  %, original out dist test rel. l2 error 5.15%
+allen       , in dist test rel. l2 error   0.98  %, out dist test rel. l2 error  49.26  %, original out dist test rel. l2 error 42.34%
+cont_tran   , in dist test rel. l2 error   0.22  %, out dist test rel. l2 error   0.34  %, original out dist test rel. l2 error 0.40%
+disc_tran   , in dist test rel. l2 error   1.66  %, out dist test rel. l2 error   1.70  %, original out dist test rel. l2 error 1.14%
+airfoil     , in dist test rel. l2 error  10.08  %, out dist test rel. l2 error  10.10  %, original out dist test rel. l2 error 2.90%
