@@ -1,4 +1,6 @@
-Training Error: 0.01711384137161076
-Best Validation Error: 1.3984536230564117
-Current Epoch: 354
+Training Error: 0.006665838853223249
+Best Validation Error: 0.6807534098625183
+Current Epoch: 999
 Params: 6608633
+Final Median Testing Error: 0.7443022131919861
+OOD Median Testing Error: 4.855719089508057
