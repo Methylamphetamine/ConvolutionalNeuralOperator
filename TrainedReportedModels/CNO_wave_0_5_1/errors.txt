@@ -1,0 +1,4 @@
+Training Error: 0.01711384137161076
+Best Validation Error: 1.3984536230564117
+Current Epoch: 354
+Params: 6608633
