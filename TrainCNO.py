@@ -15,36 +15,69 @@ from Problems.CNOBenchmarks import Darcy, Airfoil, DiscContTranslation, ContTran
 
 if len(sys.argv) == 2:
     
+    # training_properties = {
+    #     "learning_rate": 0.001, 
+    #     "weight_decay": 1e-6,
+    #     "scheduler_step": 10,
+    #     "scheduler_gamma": 0.98,
+    #     "epochs": 1000,
+    #     "batch_size": 16,
+    #     "exp": 1,                # Do we use L1 or L2 errors? Default: L1
+    #     "training_samples": 256  # How many training samples?
+    # }
+    # model_architecture_ = {
+        
+    #     #Parameters to be chosen with model selection:
+    #     "N_layers": 3,            # Number of (D) & (U) blocks 
+    #     "channel_multiplier": 32, # Parameter d_e (how the number of channels changes)
+    #     "N_res": 4,               # Number of (R) blocks in the middle networs.
+    #     "N_res_neck" : 6,         # Number of (R) blocks in the BN
+        
+    #     #Other parameters:
+    #     "in_size": 64,            # Resolution of the computational grid
+    #     "retrain": 4,             # Random seed
+    #     "kernel_size": 3,         # Kernel size.
+    #     "FourierF": 0,            # Number of Fourier Features in the input channels. Default is 0.
+    #     "activation": 'cno_lrelu',# cno_lrelu or lrelu
+        
+    #     #Filter properties:
+    #     "cutoff_den": 2.0001,     # Cutoff parameter.
+    #     "lrelu_upsampling": 2,    # Coefficient N_{\sigma}. Default is 2.
+    #     "half_width_mult": 0.8,   # Coefficient c_h. Default is 1
+    #     "filter_size": 6,         # 2xfilter_size is the number of taps N_{tap}. Default is 6.
+    #     "radial_filter": 0,       # Is the filter radially symmetric? Default is 0 - NO.
+    # }
+# NOTE: change the hyperparameters to the reported
+
     training_properties = {
-        "learning_rate": 0.001, 
-        "weight_decay": 1e-6,
+        "learning_rate": 0.001, # CHECKED
         "scheduler_step": 10,
-        "scheduler_gamma": 0.98,
+        "scheduler_gamma": 0.98, # CHECKED
         "epochs": 1000,
-        "batch_size": 16,
+        "batch_size": 32,
         "exp": 1,                # Do we use L1 or L2 errors? Default: L1
         "training_samples": 256  # How many training samples?
     }
     model_architecture_ = {
         
         #Parameters to be chosen with model selection:
-        "N_layers": 3,            # Number of (D) & (U) blocks 
-        "channel_multiplier": 32, # Parameter d_e (how the number of channels changes)
-        "N_res": 4,               # Number of (R) blocks in the middle networs.
-        "N_res_neck" : 6,         # Number of (R) blocks in the BN
+        # "N_layers": 3,            # Number of (D) & (U) blocks CHANGE M
+        # "channel_multiplier": 32, # Parameter d_e (how the number of channels changes) CHANGE
+        # "N_res": 4,               # Number of (R) blocks in the middle networs. CHANGE
+        # "N_res_neck" : 6,         # Number of (R) blocks in the BN CHANGE, r
         
         #Other parameters:
         "in_size": 64,            # Resolution of the computational grid
         "retrain": 4,             # Random seed
-        "kernel_size": 3,         # Kernel size.
+        "kernel_size": 3,         # Kernel size. CHECKED
         "FourierF": 0,            # Number of Fourier Features in the input channels. Default is 0.
         "activation": 'cno_lrelu',# cno_lrelu or lrelu
         
         #Filter properties:
         "cutoff_den": 2.0001,     # Cutoff parameter.
         "lrelu_upsampling": 2,    # Coefficient N_{\sigma}. Default is 2.
-        "half_width_mult": 0.8,   # Coefficient c_h. Default is 1
-        "filter_size": 6,         # 2xfilter_size is the number of taps N_{tap}. Default is 6.
+        "half_width_mult": 0.8,   # Coefficient c_h. Default is 1 CHECKED
+        "filter_size": 6,         # 2xfilter_size is the number of taps N_{tap}. Default is 6. CHECKED
         "radial_filter": 0,       # Is the filter radially symmetric? Default is 0 - NO.
     }
     
@@ -63,7 +96,7 @@ if len(sys.argv) == 2:
     #which_example = "shear_layer"
 
     # Save the models here:
-    folder = "TrainedModels/"+"CNO_"+which_example+"_1"
+    folder = "TrainedReportedModels/"+"CNO_"+which_example+"_1"
         
 else:
     
@@ -76,49 +109,162 @@ else:
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 writer = SummaryWriter(log_dir=folder) #usage of TensorBoard
 
-learning_rate = training_properties["learning_rate"]
-epochs = training_properties["epochs"]
-batch_size = training_properties["batch_size"]
-weight_decay = training_properties["weight_decay"]
-scheduler_step = training_properties["scheduler_step"]
-scheduler_gamma = training_properties["scheduler_gamma"]
-training_samples = training_properties["training_samples"]
-p = training_properties["exp"]
+
 
 if not os.path.isdir(folder):
     print("Generated new folder")
     os.mkdir(folder)
 
+# NOTE moved most of the hyperparameter variables to after the individual example setup
+batch_size = training_properties["batch_size"]
+
+
+# NOTE add ood example, set correct training sample size
+if which_example == "shear_layer":
+    training_properties.update({
+        "weight_decay": 1e-10, # CHANGE
+    })
+    model_architecture_.update({
+        #Parameters to be chosen with model selection:
+        "N_layers": 3,            # Number of (D) & (U) blocks CHANGE M
+        "channel_multiplier": 32, # Parameter d_e (how the number of channels changes) CHANGE
+        "N_res": 1,               # Number of (R) blocks in the middle networs. CHANGE
+        "N_res_neck" : 8,         # Number of (R) blocks in the BN CHANGE, r
+    })
+    training_samples = training_properties["training_samples"] = 750
+    example = ShearLayer(model_architecture_, device, batch_size, training_samples, size = 64)
+    ood_example = ShearLayer(model_architecture_, device, batch_size, training_samples, size = 64, in_dist=False)
+elif which_example == "poisson":
+    training_properties.update({
+        "weight_decay": 1e-6, # CHANGE
+    })
+    model_architecture_.update({
+        #Parameters to be chosen with model selection:
+        "N_layers": 3,            # Number of (D) & (U) blocks CHANGE M
+        "channel_multiplier": 16, # Parameter d_e (how the number of channels changes) CHANGE
+        "N_res": 4,               # Number of (R) blocks in the middle networs. CHANGE
+        "N_res_neck" : 6,         # Number of (R) blocks in the BN CHANGE, r
+    })
+    training_samples = training_properties["training_samples"] = 1024
+    example = SinFrequency(model_architecture_, device, batch_size, training_samples)
+    ood_example = SinFrequency(model_architecture_, device, batch_size, training_samples, in_dist=False)
+elif which_example == "wave_0_5":
+    training_properties.update({
+        "weight_decay": 1e-10, # CHANGE
+    })
+    model_architecture_.update({
+        #Parameters to be chosen with model selection:
+        "N_layers": 3,            # Number of (D) & (U) blocks CHANGE M
+        "channel_multiplier": 48, # Parameter d_e (how the number of channels changes) CHANGE
+        "N_res": 4,               # Number of (R) blocks in the middle networs. CHANGE
+        "N_res_neck" : 6,         # Number of (R) blocks in the BN CHANGE, r
+    })
+    training_samples = training_properties["training_samples"] = 512
+    example = WaveEquation(model_architecture_, device, batch_size, training_samples)
+    ood_example = WaveEquation(model_architecture_, device, batch_size, training_samples, in_dist=False)
+elif which_example == "allen":
+    training_properties.update({
+        "weight_decay": 1e-6, # CHANGE
+    })
+    model_architecture_.update({
+        #Parameters to be chosen with model selection:
+        "N_layers": 3,            # Number of (D) & (U) blocks CHANGE M
+        "channel_multiplier": 48, # Parameter d_e (how the number of channels changes) CHANGE
+        "N_res": 4,               # Number of (R) blocks in the middle networs. CHANGE
+        "N_res_neck" : 8,         # Number of (R) blocks in the BN CHANGE, r
+    })
+    training_samples = training_properties["training_samples"] = 256
+    example = AllenCahn(model_architecture_, device, batch_size, training_samples)
+    ood_example = AllenCahn(model_architecture_, device, batch_size, training_samples, in_dist=False)
+elif which_example == "cont_tran":
+    training_properties.update({
+        "weight_decay": 1e-6, # CHANGE
+    })
+    model_architecture_.update({
+        #Parameters to be chosen with model selection:
+        "N_layers": 3,            # Number of (D) & (U) blocks CHANGE M
+        "channel_multiplier": 32, # Parameter d_e (how the number of channels changes) CHANGE
+        "N_res": 2,               # Number of (R) blocks in the middle networs. CHANGE
+        "N_res_neck" : 6,         # Number of (R) blocks in the BN CHANGE, r
+    })
+    training_samples = training_properties["training_samples"] = 512
+    example = ContTranslation(model_architecture_, device, batch_size, training_samples)
+    ood_example = ContTranslation(model_architecture_, device, batch_size, training_samples, in_dist=False)
+elif which_example == "disc_tran":
+    training_properties.update({
+        "weight_decay": 1e-6, # CHANGE
+    })
+    model_architecture_.update({
+        #Parameters to be chosen with model selection:
+        "N_layers": 3,            # Number of (D) & (U) blocks CHANGE M
+        "channel_multiplier": 32, # Parameter d_e (how the number of channels changes) CHANGE
+        "N_res": 5,               # Number of (R) blocks in the middle networs. CHANGE
+        "N_res_neck" : 4,         # Number of (R) blocks in the BN CHANGE, r
+    })
+    training_samples = training_properties["training_samples"] = 512
+    example = DiscContTranslation(model_architecture_, device, batch_size, training_samples)
+    ood_example = DiscContTranslation(model_architecture_, device, batch_size, training_samples, in_dist=False)
+elif which_example == "airfoil":
+    training_properties.update({
+        "weight_decay": 1e-10, # CHANGE
+    })
+    model_architecture_.update({
+        #Parameters to be chosen with model selection:
+        "N_layers": 4,            # Number of (D) & (U) blocks CHANGE M
+        "channel_multiplier": 48, # Parameter d_e (how the number of channels changes) CHANGE
+        "N_res": 1,               # Number of (R) blocks in the middle networs. CHANGE
+        "N_res_neck" : 8,         # Number of (R) blocks in the BN CHANGE, r
+    })
+    training_samples = training_properties["training_samples"] = 750
+    model_architecture_["in_size"] = 128
+    example = Airfoil(model_architecture_, device, batch_size, training_samples)
+    ood_example = Airfoil(model_architecture_, device, batch_size, training_samples, in_dist=False)
+elif which_example == "darcy":
+    training_properties.update({
+        "weight_decay": 1e-6, # CHANGE
+    })
+    model_architecture_.update({
+        #Parameters to be chosen with model selection:
+        "N_layers": 3,            # Number of (D) & (U) blocks CHANGE M
+        "channel_multiplier": 48, # Parameter d_e (how the number of channels changes) CHANGE
+        "N_res": 4,               # Number of (R) blocks in the middle networs. CHANGE
+        "N_res_neck" : 4,         # Number of (R) blocks in the BN CHANGE, r
+    })
+    training_samples = training_properties["training_samples"] = 256
+    example = Darcy(model_architecture_, device, batch_size, training_samples)
+    ood_example = Darcy(model_architecture_, device, batch_size, training_samples, in_dist=False)
+else:
+    raise ValueError()
+# NOTE load some training hyperparameters after setting for individual examples
+learning_rate = training_properties["learning_rate"]
+epochs = training_properties["epochs"]
+
+weight_decay = training_properties["weight_decay"]
+scheduler_step = training_properties["scheduler_step"]
+scheduler_gamma = training_properties["scheduler_gamma"]
+# training_samples = training_properties["training_samples"]
+p = training_properties["exp"]
+# NOTE save train and architecture config after setting.
 df = pd.DataFrame.from_dict([training_properties]).T
 df.to_csv(folder + '/training_properties.txt', header=False, index=True, mode='w')
 df = pd.DataFrame.from_dict([model_architecture_]).T
 df.to_csv(folder + '/net_architecture.txt', header=False, index=True, mode='w')
-
-if which_example == "shear_layer":
-    example = ShearLayer(model_architecture_, device, batch_size, training_samples, size = 64)
-elif which_example == "poisson":
-    example = SinFrequency(model_architecture_, device, batch_size, training_samples)
-elif which_example == "wave_0_5":
-    example = WaveEquation(model_architecture_, device, batch_size, training_samples)
-elif which_example == "allen":
-    example = AllenCahn(model_architecture_, device, batch_size, training_samples)
-elif which_example == "cont_tran":
-    example = ContTranslation(model_architecture_, device, batch_size, training_samples)
-elif which_example == "disc_tran":
-    example = DiscContTranslation(model_architecture_, device, batch_size, training_samples)
-elif which_example == "airfoil":
-    model_architecture_["in_size"] = 128
-    example = Airfoil(model_architecture_, device, batch_size, training_samples)
-elif which_example == "darcy":
-    example = Darcy(model_architecture_, device, batch_size, training_samples)
-else:
-    raise ValueError()
     
 #-----------------------------------Train--------------------------------------
 model = example.model
 n_params = model.print_size()
 train_loader = example.train_loader #TRAIN LOADER
 val_loader = example.val_loader #VALIDATION LOADER
+# NOTE add ood loader
+test_loader = example.test_loader
+ood_test_loader = ood_example.test_loader
+
+#####################
+# NOTE in dist and ood test trunk
+
+
+
+####################
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=scheduler_step, gamma=scheduler_gamma)
@@ -140,7 +286,7 @@ if str(device) == 'cpu':
     print("------------------------------------------")
     print(" ")
 
-
+print(which_example)
 for epoch in range(epochs):
     with tqdm(unit="batch", disable=False) as tepoch:
         
@@ -207,7 +353,7 @@ for epoch in range(epochs):
                 best_model_testing_error = test_relative_l2
                 best_model = copy.deepcopy(model)
                 torch.save(best_model, folder + "/model.pkl")
-                writer.add_scalar("val_loss/Best Relative Testing Error", best_model_testing_error, epoch)
+                writer.add_scalar("val_loss/Best Relative Validation Error", best_model_testing_error, epoch)
                 counter = 0
             else:
                 counter+=1
@@ -217,7 +363,7 @@ for epoch in range(epochs):
 
         with open(folder + '/errors.txt', 'w') as file:
             file.write("Training Error: " + str(train_mse) + "\n")
-            file.write("Best Testing Error: " + str(best_model_testing_error) + "\n")
+            file.write("Best Validation Error: " + str(best_model_testing_error) + "\n")
             file.write("Current Epoch: " + str(epoch) + "\n")
             file.write("Params: " + str(n_params) + "\n")
         scheduler.step()
@@ -225,3 +371,48 @@ for epoch in range(epochs):
     if counter>patience:
         print("Early Stopping")
         break
+
+################
+
+# NOTE add test and ood error
+
+with torch.no_grad():
+    model.eval()
+    final_test_relative_l2 = 0.0
+    
+    for step, (input_batch, output_batch) in enumerate(test_loader):
+        
+        input_batch = input_batch.to(device)
+        output_batch = output_batch.to(device)
+        output_pred_batch = model(input_batch)
+        
+        if which_example == "airfoil": #Mask the airfoil shape
+            output_pred_batch[input_batch==1] = 1
+            output_batch[input_batch==1] = 1
+        
+        loss_f = torch.mean(abs(output_pred_batch - output_batch)) / torch.mean(abs(output_batch)) * 100
+        final_test_relative_l2 += loss_f.item()
+    final_test_relative_l2 /= len(test_loader)
+
+    ood_test_relative_l2 = 0.0
+    
+    for step, (input_batch, output_batch) in enumerate(ood_test_loader):
+        
+        input_batch = input_batch.to(device)
+        output_batch = output_batch.to(device)
+        output_pred_batch = model(input_batch)
+        
+        if which_example == "airfoil": #Mask the airfoil shape
+            output_pred_batch[input_batch==1] = 1
+            output_batch[input_batch==1] = 1
+        
+        loss_f = torch.mean(abs(output_pred_batch - output_batch)) / torch.mean(abs(output_batch)) * 100
+        ood_test_relative_l2 += loss_f.item()
+    ood_test_relative_l2 /= len(ood_test_loader)
+
+print(final_test_relative_l2)
+print(ood_test_relative_l2)
+
+with open(folder + '/errors.txt', 'a') as file:
+    file.write("Final Testing Error: " + str(final_test_relative_l2) + "\n")
+    file.write("OOD Testing Error: " + str(ood_test_relative_l2) + "\n")

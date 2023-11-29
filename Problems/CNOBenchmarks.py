@@ -15,6 +15,8 @@ from training.FourierFeatures import FourierFeatures
 torch.manual_seed(0)
 np.random.seed(0)
 random.seed(0)
+# NOTE change data location
+data_folder = '/scratch/PDEDatasets/CNO/new_data/'
 
 
 
@@ -99,11 +101,11 @@ class ShearLayerDataset(Dataset):
         
         if in_dist:
             if self.s==64:
-                self.file_data = "data/NavierStokes_64x64_IN.h5" #In-distribution file 64x64               
+                self.file_data = data_folder + "NavierStokes_64x64_IN.h5" #In-distribution file 64x64               
             else:
-                self.file_data = "data/NavierStokes_128x128_IN.h5"   #In-distribution file 128x128
+                self.file_data = data_folder + "NavierStokes_128x128_IN.h5"   #In-distribution file 128x128
         else:
-            self.file_data = "data/NavierStokes_128x128_OUT.h5"  #Out-of_-distribution file 128x128
+            self.file_data = data_folder + "NavierStokes_128x128_OUT.h5"  #Out-of_-distribution file 128x128
         
         self.reader = h5py.File(self.file_data, 'r') 
         self.N_max = 1024
@@ -138,9 +140,9 @@ class ShearLayerDataset(Dataset):
             labels = torch.from_numpy(self.reader['Sample_' + str(index + self.start)]["output"][:]).type(torch.float32).reshape(1, self.s, self.s)
 
         else:
-            
-            inputs = self.reader['Sample_' + str(index + self.start)]["input"][:].reshape(1,1,self.s, self.s)
-            labels = self.reader['Sample_' + str(index + self.start)]["output"][:].reshape(1,1, self.s, self.s)
+            # fixed sizing issue for out of distribution dataset
+            inputs = self.reader['Sample_' + str(index + self.start)]["input"][:].reshape(1,1,128, 128)
+            labels = self.reader['Sample_' + str(index + self.start)]["output"][:].reshape(1,1, 128, 128)
             
             if self.s<128:
                 inputs = downsample(inputs, self.s).reshape(1, self.s, self.s)
@@ -256,9 +258,9 @@ class SinFrequencyDataset(Dataset):
         
         #The file:
         if in_dist:
-            self.file_data = "data/PoissonData_64x64_IN.h5"
+            self.file_data = data_folder + "PoissonData_64x64_IN.h5"
         else:
-            self.file_data = "data/PoissonData_64x64_OUT.h5"
+            self.file_data = data_folder + "PoissonData_64x64_OUT.h5"
 
         #Load normalization constants from the TRAINING set:
         self.reader = h5py.File(self.file_data, 'r')
@@ -285,7 +287,7 @@ class SinFrequencyDataset(Dataset):
         
         #Load different resolutions
         if s!=64:
-            self.file_data = "data/PoissonData_NEW_s" + str(s) + ".h5"
+            self.file_data = data_folder + "PoissonData_NEW_s" + str(s) + ".h5"
             self.start = 0
         
         #If the reader changed.
@@ -402,9 +404,9 @@ class WaveEquationDataset(Dataset):
         
         #Default file:       
         if in_dist:
-            self.file_data = "data/WaveData_64x64_IN.h5"
+            self.file_data = data_folder + "WaveData_64x64_IN.h5"
         else:
-            self.file_data = "data/WaveData_64x64_OUT.h5"
+            self.file_data = data_folder + "WaveData_64x64_OUT.h5"
 
         self.reader = h5py.File(self.file_data, 'r')
         
@@ -433,7 +435,7 @@ class WaveEquationDataset(Dataset):
         
         self.s = s
         if s!=64:
-            self.file_data = "data/WaveData_24modes_s" + str(s) + ".h5"
+            self.file_data = data_folder + "WaveData_24modes_s" + str(s) + ".h5"
             self.start = 0
         
         #If the reader changed:
@@ -549,9 +551,9 @@ class AllenCahnDataset(Dataset):
 
         #Default file:
         if in_dist:
-            self.file_data = "data/AllenCahn_64x64_IN.h5"
+            self.file_data = data_folder + "AllenCahn_64x64_IN.h5"
         else:            
-            self.file_data = "data/AllenCahn_64x64_OUT.h5"
+            self.file_data = data_folder + "AllenCahn_64x64_OUT.h5"
         self.reader = h5py.File(self.file_data, 'r')
         
         #Load normalization constants:
@@ -689,9 +691,9 @@ class ContTranslationDataset(Dataset):
         #The data is already normalized        
         #Default file:       
         if in_dist:
-            self.file_data = "data/ContTranslation_64x64_IN.h5"
+            self.file_data = data_folder + "ContTranslation_64x64_IN.h5"
         else:
-            self.file_data = "data/ContTranslation_64x64_OUT.h5"
+            self.file_data = data_folder + "ContTranslation_64x64_OUT.h5"
         
         print(self.file_data)
         self.reader = h5py.File(self.file_data, 'r') 
@@ -821,9 +823,9 @@ class DiscContTranslationDataset(Dataset):
         #The data is already normalized
         
         if in_dist:
-            self.file_data = "data/DiscTranslation_64x64_IN.h5"
+            self.file_data = data_folder + "DiscTranslation_64x64_IN.h5"
         else:
-            self.file_data = "data/DiscTranslation_64x64_OUT.h5"
+            self.file_data = data_folder + "DiscTranslation_64x64_OUT.h5"
         
         if which == "training":
             self.length = training_samples
@@ -953,9 +955,9 @@ class AirfoilDataset(Dataset):
         #We DO NOT normalize the data in this case
         
         if in_dist:
-            self.file_data = "data/Airfoil_128x128_IN.h5"
+            self.file_data = data_folder + "Airfoil_128x128_IN.h5"
         else:
-            self.file_data = "data/Airfoil_128x128_OUT.h5"
+            self.file_data = data_folder + "Airfoil_128x128_OUT.h5"
         
         #in_dist = False
         
@@ -1088,9 +1090,10 @@ class DarcyDataset(Dataset):
     def __init__(self, which="training", nf=0, training_samples=256, insample=True):
         
         if insample:
-            self.file_data = "data/Darcy_64x64_IN.h5"
+            self.file_data = data_folder + "Darcy_64x64_IN.h5"
         else:
-            self.file_data = "data/Darcy_64x64_IN.h5"
+            # NOTE fixed the ood filename
+            self.file_data = data_folder + "Darcy_64x64_OUT.h5"
         
         
         self.reader = h5py.File(self.file_data, 'r')
@@ -1213,3 +1216,4 @@ class Darcy:
         self.train_loader = DataLoader(DarcyDataset("training", self.N_Fourier_F, training_samples), batch_size=batch_size, shuffle=True, num_workers=num_workers)
         self.val_loader = DataLoader(DarcyDataset("validation", self.N_Fourier_F, training_samples), batch_size=batch_size, shuffle=True, num_workers=num_workers)
         self.test_loader = DataLoader(DarcyDataset("testing", self.N_Fourier_F, training_samples, in_dist), batch_size=batch_size, shuffle=False, num_workers=num_workers)
+
