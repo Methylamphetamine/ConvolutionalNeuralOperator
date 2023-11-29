@@ -1,5 +1,5 @@
-python TrainCNO.py shear_layer
 python TrainCNO.py poisson
+python TrainCNO.py shear_layer
 python TrainCNO.py wave_0_5
 python TrainCNO.py allen
 # python TrainCNO.py cont_tran

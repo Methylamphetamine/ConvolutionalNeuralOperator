@@ -7,7 +7,7 @@ import pandas as pd
 import torch
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
-
+import numpy as np
 
 from Problems.CNOBenchmarks import Darcy, Airfoil, DiscContTranslation, ContTranslation, AllenCahn, SinFrequency, WaveEquation, ShearLayer
 
@@ -374,11 +374,11 @@ for epoch in range(epochs):
 
 ################
 
-# NOTE add test and ood error
+# NOTE add test and ood error, median
 
 with torch.no_grad():
     model.eval()
-    final_test_relative_l2 = 0.0
+    final_test_relative_l2 = []
     
     for step, (input_batch, output_batch) in enumerate(test_loader):
         
@@ -390,11 +390,11 @@ with torch.no_grad():
             output_pred_batch[input_batch==1] = 1
             output_batch[input_batch==1] = 1
         
-        loss_f = torch.mean(abs(output_pred_batch - output_batch)) / torch.mean(abs(output_batch)) * 100
-        final_test_relative_l2 += loss_f.item()
-    final_test_relative_l2 /= len(test_loader)
+        loss_f = torch.mean(abs(output_pred_batch - output_batch), axis = [1,2,3]) / torch.mean(abs(output_batch), axis = [1,2,3]) * 100
+        final_test_relative_l2.append(loss_f.detach().cpu().numpy())
+    final_test_relative_l2 = np.concatenate(final_test_relative_l2, 0)
 
-    ood_test_relative_l2 = 0.0
+    ood_test_relative_l2 = []
     
     for step, (input_batch, output_batch) in enumerate(ood_test_loader):
         
@@ -406,13 +406,13 @@ with torch.no_grad():
             output_pred_batch[input_batch==1] = 1
             output_batch[input_batch==1] = 1
         
-        loss_f = torch.mean(abs(output_pred_batch - output_batch)) / torch.mean(abs(output_batch)) * 100
-        ood_test_relative_l2 += loss_f.item()
-    ood_test_relative_l2 /= len(ood_test_loader)
+        loss_f = torch.mean(abs(output_pred_batch - output_batch), axis = [1,2,3]) / torch.mean(abs(output_batch), axis = [1,2,3]) * 100
+        ood_test_relative_l2.append(loss_f.detach().cpu().numpy())
+    ood_test_relative_l2 = np.concatenate(ood_test_relative_l2, 0)
 
-print(final_test_relative_l2)
-print(ood_test_relative_l2)
+print(np.median(final_test_relative_l2).item())
+print(np.median(ood_test_relative_l2).item())
 
 with open(folder + '/errors.txt', 'a') as file:
-    file.write("Final Testing Error: " + str(final_test_relative_l2) + "\n")
-    file.write("OOD Testing Error: " + str(ood_test_relative_l2) + "\n")
+    file.write("Final Median Testing Error: " + str(np.median(final_test_relative_l2).item()) + "\n")
+    file.write("OOD Median Testing Error: " + str(np.median(ood_test_relative_l2).item()) + "\n")
