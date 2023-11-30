@@ -8,8 +8,8 @@ import torch
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 import numpy as np
-
-from Problems.CNOBenchmarks import Darcy, Airfoil, DiscContTranslation, ContTranslation, AllenCahn, SinFrequency, WaveEquation, ShearLayer
+# NOTE changed normalization
+from Problems.CNOBenchmarks_new_normalization import Darcy, Airfoil, DiscContTranslation, ContTranslation, AllenCahn, SinFrequency, WaveEquation, ShearLayer
 
 
 
@@ -96,7 +96,7 @@ if len(sys.argv) == 2:
     #which_example = "shear_layer"
 
     # Save the models here: NOTE change saving directory
-    folder = "TrainedReportedModels_NoEarlyStopping/"+"CNO_"+which_example+"_1"
+    folder = "TrainedReportedModels_NoEarlyStopping_new_normalization/"+"CNO_"+which_example+"_1"
         
 else:
     

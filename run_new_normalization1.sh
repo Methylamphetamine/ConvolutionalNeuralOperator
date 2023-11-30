@@ -1,0 +1,4 @@
+python TrainCNO_new_normalization.py poisson
+python TrainCNO_new_normalization.py shear_layer
+python TrainCNO_new_normalization.py wave_0_5
+python TrainCNO_new_normalization.py allen

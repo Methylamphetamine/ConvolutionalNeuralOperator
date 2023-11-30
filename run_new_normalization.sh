@@ -1,0 +1,4 @@
+python TrainCNO_new_normalization.py cont_tran
+python TrainCNO_new_normalization.py disc_tran
+python TrainCNO_new_normalization.py airfoil
+python TrainCNO_new_normalization.py darcy
