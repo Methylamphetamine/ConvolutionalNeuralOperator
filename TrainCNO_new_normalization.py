@@ -416,8 +416,8 @@ with torch.no_grad():
 print(np.median(final_test_relative_l2).item(), final_test_relative_l2.shape)
 print(np.median(ood_test_relative_l2).item(), ood_test_relative_l2.shape)
 # NOTE save files.
-np.save(folder + 'final_test_relative_l2.npy', final_test_relative_l2)
-np.save(folder + 'ood_test_relative_l2.npy', ood_test_relative_l2)
+np.save(folder + '/final_test_relative_l2.npy', final_test_relative_l2)
+np.save(folder + '/ood_test_relative_l2.npy', ood_test_relative_l2)
 
 with open(folder + '/errors.txt', 'a') as file:
     file.write("Final Median Testing Error: " + str(np.median(final_test_relative_l2).item()) + "\n")
