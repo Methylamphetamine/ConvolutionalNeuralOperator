@@ -7,6 +7,7 @@ import pandas as pd
 import torch
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
+import numpy as np
 
 
 # from Problems.CNOBenchmarks import Darcy, Airfoil, DiscContTranslation, ContTranslation, AllenCahn, SinFrequency, WaveEquation, ShearLayer
@@ -74,6 +75,7 @@ df.to_csv(folder + '/net_architecture.txt', header=False, index=True, mode='w')
 model_architecture_["mode"] = unet_type
 if which_example == "poisson":
     model_architecture_["out_dim"] = 1
+    training_samples = training_properties["training_samples"] = 1024
     example = SinFrequency(model_architecture_, device, batch_size, training_samples)
     ood_example = SinFrequency(model_architecture_, device, batch_size, training_samples, in_dist=False)
 
@@ -109,8 +111,8 @@ if str(device) == 'cpu':
     print(" ")
 
 
-
-
+train_error = []
+test_error = []
 
 for epoch in range(epochs):
     with tqdm(unit="batch", disable=False) as tepoch:
@@ -170,7 +172,11 @@ for epoch in range(epochs):
                     loss_f = torch.mean(abs(output_pred_batch - output_batch)) / torch.mean(abs(output_batch)) * 100
                     train_relative_l2 += loss_f.item()
             train_relative_l2 /= len(train_loader)
-            
+            train_error.append(train_relative_l2)
+            test_error.append(test_relative_l2)
+
+            np.save(folder + '/train_error.npy', np.array(train_error))
+            np.save(folder + '/test_error.npy', np.array(test_error))
             writer.add_scalar("train_loss/train_loss_rel", train_relative_l2, epoch)
             writer.add_scalar("val_loss/val_loss", test_relative_l2, epoch)
 
@@ -197,7 +203,7 @@ for epoch in range(epochs):
         print("Early Stopping")
         break
 
-
+model = best_model
 with torch.no_grad():
     model.eval()
     final_test_relative_l2 = 0.0

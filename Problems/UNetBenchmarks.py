@@ -78,10 +78,11 @@ class SinFrequencyDataset(Dataset):
 
         #Load normalization constants from the TRAINING set:
         self.reader = h5py.File(self.file_data, 'r')
-        self.min_data = self.reader['min_inp'][()]
-        self.max_data = self.reader['max_inp'][()]
-        self.min_model = self.reader['min_out'][()]
-        self.max_model = self.reader['max_out'][()]
+        self.normalization_reader = h5py.File(data_folder + "PoissonData_64x64_IN.h5", 'r')
+        self.min_data = self.normalization_reader['min_inp'][()]
+        self.max_data = self.normalization_reader['max_inp'][()]
+        self.min_model = self.normalization_reader['min_out'][()]
+        self.max_model = self.normalization_reader['max_out'][()]
 
         self.s = s #Sampling rate
 

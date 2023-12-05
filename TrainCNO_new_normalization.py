@@ -290,6 +290,8 @@ if str(device) == 'cpu':
     print(" ")
 
 print(which_example)
+train_error= []
+test_error = []
 for epoch in range(epochs):
     with tqdm(unit="batch", disable=False) as tepoch:
         
@@ -348,6 +350,12 @@ for epoch in range(epochs):
                     loss_f = torch.mean(abs(output_pred_batch - output_batch)) / torch.mean(abs(output_batch)) * 100
                     train_relative_l2 += loss_f.item()
             train_relative_l2 /= len(train_loader)
+
+            train_error.append(train_relative_l2)
+            test_error.append(test_relative_l2)
+
+            np.save(folder + '/train_error.npy', np.array(train_error))
+            np.save(folder + '/test_error.npy', np.array(test_error))
             
             writer.add_scalar("train_loss/train_loss_rel", train_relative_l2, epoch)
             writer.add_scalar("val_loss/val_loss", test_relative_l2, epoch)

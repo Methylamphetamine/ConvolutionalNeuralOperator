@@ -1,0 +1,5 @@
+in_size,64
+retrain,4
+FourierF,0
+initial_channels,1
+start_channels,64
